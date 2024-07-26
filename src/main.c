@@ -18,12 +18,37 @@
 #define PASSWORD "Indigo2017"
 #define METHOD "aes-256-gcm"
 
+#ifdef _WIN32
+int inet_pton(int af, const char *src, void *dst) {
+    struct sockaddr_storage ss;
+    int size = sizeof(ss);
+    char src_copy[INET6_ADDRSTRLEN+1];
+
+    ZeroMemory(&ss, sizeof(ss));
+    strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
+    src_copy[INET6_ADDRSTRLEN] = 0;
+
+    if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+        switch(af) {
+            case AF_INET:
+                *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+                return 1;
+            case AF_INET6:
+                *(struct in6_addr *)dst = ((struct in6_addr *)&ss)->sin6_addr;
+                return 1;
+        }
+    }
+    return 0;
+}
+#endif
 
 int main() {
     if (sodium_init() < 0) {
         fprintf(stderr, "libsodium initialization failed\n");
         return 1;
     }
+
+    printf("Libsodium initialized successfully\n");
 
     // Setting up the encryption key
     unsigned char key[crypto_aead_aes256gcm_KEYBYTES];
@@ -34,12 +59,15 @@ int main() {
         return 1;
     }
 
+    printf("Encryption key setup successfully\n");
+
     #ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         fprintf(stderr, "WSAStartup failed\n");
         return 1;
     }
+    printf("WSAStartup initialized successfully\n");
     #endif
 
     // Create socket
@@ -48,6 +76,8 @@ int main() {
         perror("socket");
         return 1;
     }
+
+    printf("Socket created successfully\n");
 
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -58,11 +88,15 @@ int main() {
         return 1;
     }
 
+    printf("Server address setup successfully\n");
+
     // Connect to the server
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("connect");
         return 1;
     }
+
+    printf("Connected to the server successfully\n");
 
     // Sending a test message (this part should be replaced with actual Shadowsocks protocol)
     char *message = "Hello, Shadowsocks!";
@@ -79,8 +113,12 @@ int main() {
         return 1;
     }
 
+    printf("Message encrypted successfully\n");
+
     send(sockfd, nonce, sizeof nonce, 0);
     send(sockfd, ciphertext, ciphertext_len, 0);
+
+    printf("Message sent successfully\n");
 
     #ifdef _WIN32
     closesocket(sockfd);
@@ -89,5 +127,9 @@ int main() {
     close(sockfd);
     #endif
 
+    printf("Socket closed successfully\n");
+
+    printf("Press Enter to exit...");
+    getchar();  // Ожидание нажатия клавиши Enter перед выходом
     return 0;
 }
