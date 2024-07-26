@@ -24,7 +24,7 @@ This project is a cross-platform VPN client for Shadowsocks. Initially, it is an
 
 - [x] Set up a basic Shadowsocks client
 - [x] Ensure cross-platform compatibility (Windows, Linux)
-- [ ] Test and verify functionality
+- [x] Test and verify functionality
 
 ### Phase 2: Expand Platform Support
 
