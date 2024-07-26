@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Укажите имя проекта и используемый язык
+# Specify the project name and the programming language
 project(shadowsocks_client C)
 
-# Укажите стандарт языка Си
+# Specify the C standard
 set(CMAKE_C_STANDARD 11)
 
-# Установите выходные каталоги
+# Set the output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Добавьте пути для поиска библиотек и include файлов
+# Add paths to find libraries and include files
 if (NOT CMAKE_C_COMPILER MATCHES "x86_64-w64-mingw32-gcc")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SODIUM REQUIRED libsodium)
@@ -20,7 +20,7 @@ else()
     link_directories(/usr/x86_64-w64-mingw32/lib)
 endif()
 
-# Добавьте исполняемый файл для Linux или Windows
+# Add executable for Linux or Windows
 if (NOT CMAKE_C_COMPILER MATCHES "x86_64-w64-mingw32-gcc")
     add_executable(shadowsocks_client src/main.c)
     target_link_libraries(shadowsocks_client ${SODIUM_LIBRARIES})
