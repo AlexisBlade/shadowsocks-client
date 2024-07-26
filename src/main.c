@@ -179,12 +179,22 @@ int main() {
         return 1;
     }
     printf("Nonce sent successfully\n");
-    
+
     if (send(sockfd, ciphertext, ciphertext_len, 0) == -1) {
         perror("send ciphertext");
         return 1;
     }
     printf("Ciphertext sent successfully\n");
+
+    // Receive response from the server
+    unsigned char buffer[1024];
+    int len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+    if (len > 0) {
+        buffer[len] = '\0';
+        printf("Received response from server: %s\n", buffer);
+    } else {
+        perror("recv");
+    }
 
     #ifdef _WIN32
     closesocket(sockfd);
