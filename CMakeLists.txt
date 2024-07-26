@@ -20,12 +20,14 @@ else()
     link_directories(/usr/x86_64-w64-mingw32/lib)
 endif()
 
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
 # Add executable for Linux or Windows
 if (NOT CMAKE_C_COMPILER MATCHES "x86_64-w64-mingw32-gcc")
-    add_executable(shadowsocks_client src/main.c)
+    add_executable(shadowsocks_client src/main.c src/network.c)
     target_link_libraries(shadowsocks_client ${SODIUM_LIBRARIES})
 else()
-    add_executable(shadowsocks_client_windows src/main.c)
+    add_executable(shadowsocks_client_windows src/main.c src/network.c)
     target_link_libraries(shadowsocks_client_windows sodium ws2_32 wininet)
     set_target_properties(shadowsocks_client_windows PROPERTIES OUTPUT_NAME "shadowsocks_client")
 endif()
