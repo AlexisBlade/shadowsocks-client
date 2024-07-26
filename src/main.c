@@ -62,6 +62,8 @@ int main() {
     }
     printf("Ciphertext sent successfully\n");
 
+    // Wait for a response from the server
+    printf("Waiting for response from server...\n");
     unsigned char buffer[1024];
     int len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
     if (len > 0) {
