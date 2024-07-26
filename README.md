@@ -117,4 +117,4 @@ This project is proprietary software. All rights to the source code are owned by
 
 ## Contact
 
-For questions or suggestions, please open an issue on GitHub or contact us at your.email@example.com.
+For questions or suggestions, please open an issue on GitHub or contact us at cherkasov.studio.official@gmail.com.
