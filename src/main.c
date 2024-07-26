@@ -16,8 +16,6 @@
 #include <sys/socket.h>
 #endif
 
-#include <shadowsocks.h>
-
 #define SERVER_IP "38.180.134.199"
 #define SERVER_PORT 8388
 #define PASSWORD "Indigo2017"
@@ -131,46 +129,89 @@ int main() {
     printf("System proxy set to 127.0.0.1:1080\n");
     #endif
 
-    struct shadowsocks_context *ss_ctx;
-    struct shadowsocks_config ss_cfg = {
-        .server_host = SERVER_IP,
-        .server_port = SERVER_PORT,
-        .local_port = 1080,
-        .password = PASSWORD,
-        .method = METHOD
-    };
-
-    ss_ctx = ss_init(&ss_cfg);
-    if (!ss_ctx) {
-        fprintf(stderr, "Failed to initialize Shadowsocks context\n");
+    // Create socket
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("socket");
         return 1;
     }
 
-    printf("Shadowsocks context initialized successfully\n");
+    printf("Socket created successfully\n");
 
-    if (ss_start(ss_ctx) != 0) {
-        fprintf(stderr, "Failed to start Shadowsocks client\n");
-        ss_free(ss_ctx);
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(SERVER_PORT);
+    if (inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr) <= 0) {
+        fprintf(stderr, "inet_pton error occurred\n");
         return 1;
     }
 
-    printf("Shadowsocks client started successfully\n");
+    printf("Server address setup successfully\n");
 
-    // Keep the program running
-    printf("Press Enter to stop the Shadowsocks client...\n");
-    getchar();
+    // Connect to the server
+    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("connect");
+        return 1;
+    }
 
-    ss_stop(ss_ctx);
-    ss_free(ss_ctx);
+    printf("Connected to the server successfully\n");
 
-    printf("Shadowsocks client stopped successfully\n");
+    // Sending a test message (this part should be replaced with actual Shadowsocks protocol)
+    char *message = "Hello, Shadowsocks!";
+    unsigned char ciphertext[1024];
+    unsigned long long ciphertext_len;
+    unsigned char nonce[crypto_aead_aes256gcm_NPUBBYTES];
+
+    randombytes_buf(nonce, sizeof nonce);
+
+    if (crypto_aead_aes256gcm_encrypt(ciphertext, &ciphertext_len,
+                                      (const unsigned char *)message, strlen(message),
+                                      NULL, 0, NULL, nonce, key) != 0) {
+        fprintf(stderr, "encryption failed\n");
+        return 1;
+    }
+
+    printf("Message encrypted successfully\n");
+
+    if (send(sockfd, nonce, sizeof nonce, 0) == -1) {
+        perror("send nonce");
+        return 1;
+    }
+    printf("Nonce sent successfully\n");
+
+    if (send(sockfd, ciphertext, ciphertext_len, 0) == -1) {
+        perror("send ciphertext");
+        return 1;
+    }
+    printf("Ciphertext sent successfully\n");
+
+    // Receive response from the server
+    unsigned char buffer[1024];
+    int len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+    if (len > 0) {
+        buffer[len] = '\0';
+        printf("Received response from server: %s\n", buffer);
+    } else if (len == 0) {
+        printf("Connection closed by peer\n");
+    } else {
+        perror("recv");
+    }
 
     #ifdef _WIN32
+    closesocket(sockfd);
+    WSACleanup();
+
     // Unset system proxy
     unset_system_proxy();
     printf("System proxy unset\n");
-    WSACleanup();
+    #else
+    close(sockfd);
     #endif
 
+    printf("Socket closed successfully\n");
+
+    printf("Press Enter to exit...");
+    getchar();  // Wait for Enter key press before exiting
     return 0;
 }

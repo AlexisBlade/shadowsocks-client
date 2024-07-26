@@ -15,26 +15,17 @@ if (NOT CMAKE_C_COMPILER MATCHES "x86_64-w64-mingw32-gcc")
     pkg_check_modules(SODIUM REQUIRED libsodium)
     include_directories(${SODIUM_INCLUDE_DIRS})
     link_directories(${SODIUM_LIBRARY_DIRS})
-    
-    # Shadowsocks-libev
-    pkg_check_modules(SHADOWSOCKS REQUIRED shadowsocks-libev)
-    include_directories(${SHADOWSOCKS_INCLUDE_DIRS})
-    link_directories(${SHADOWSOCKS_LIBRARY_DIRS})
 else()
     include_directories(/usr/x86_64-w64-mingw32/include)
     link_directories(/usr/x86_64-w64-mingw32/lib)
-    
-    # Shadowsocks-libev for Windows
-    include_directories(/path/to/shadowsocks-libev/include)
-    link_directories(/path/to/shadowsocks-libev/lib)
 endif()
 
 # Add executable for Linux or Windows
 if (NOT CMAKE_C_COMPILER MATCHES "x86_64-w64-mingw32-gcc")
     add_executable(shadowsocks_client src/main.c)
-    target_link_libraries(shadowsocks_client ${SODIUM_LIBRARIES} ${SHADOWSOCKS_LIBRARIES})
+    target_link_libraries(shadowsocks_client ${SODIUM_LIBRARIES})
 else()
     add_executable(shadowsocks_client_windows src/main.c)
-    target_link_libraries(shadowsocks_client_windows sodium ws2_32 wininet shadowsocks-libev)
+    target_link_libraries(shadowsocks_client_windows sodium ws2_32 wininet)
     set_target_properties(shadowsocks_client_windows PROPERTIES OUTPUT_NAME "shadowsocks_client")
 endif()
