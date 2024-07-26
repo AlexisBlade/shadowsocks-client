@@ -6,7 +6,10 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <windows.h>
+#include <wininet.h>
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "wininet.lib")
 #else
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -34,11 +37,59 @@ int inet_pton(int af, const char *src, void *dst) {
                 *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
                 return 1;
             case AF_INET6:
-                *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+                *(struct in6_addr *)dst = ((struct in6_addr *)&ss)->sin6_addr;
                 return 1;
         }
     }
     return 0;
+}
+
+void set_system_proxy(const char *proxy_address) {
+    INTERNET_PER_CONN_OPTION_LIST option_list;
+    INTERNET_PER_CONN_OPTION option[3];
+    unsigned long list_size = sizeof(option_list);
+
+    option[0].dwOption = INTERNET_PER_CONN_FLAGS;
+    option[0].Value.dwValue = PROXY_TYPE_DIRECT | PROXY_TYPE_PROXY;
+
+    option[1].dwOption = INTERNET_PER_CONN_PROXY_SERVER;
+    option[1].Value.pszValue = (char *)proxy_address;
+
+    option[2].dwOption = INTERNET_PER_CONN_PROXY_BYPASS;
+    option[2].Value.pszValue = "local";
+
+    option_list.dwSize = sizeof(option_list);
+    option_list.pszConnection = NULL;
+    option_list.dwOptionCount = 3;
+    option_list.dwOptionError = 0;
+    option_list.pOptions = option;
+
+    if (!InternetSetOption(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, list_size)) {
+        printf("Failed to set proxy settings\n");
+    }
+    InternetSetOption(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
+    InternetSetOption(NULL, INTERNET_OPTION_REFRESH, NULL, 0);
+}
+
+void unset_system_proxy() {
+    INTERNET_PER_CONN_OPTION_LIST option_list;
+    INTERNET_PER_CONN_OPTION option;
+    unsigned long list_size = sizeof(option_list);
+
+    option.dwOption = INTERNET_PER_CONN_FLAGS;
+    option.Value.dwValue = PROXY_TYPE_DIRECT;
+
+    option_list.dwSize = sizeof(option_list);
+    option_list.pszConnection = NULL;
+    option_list.dwOptionCount = 1;
+    option_list.dwOptionError = 0;
+    option_list.pOptions = &option;
+
+    if (!InternetSetOption(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, list_size)) {
+        printf("Failed to unset proxy settings\n");
+    }
+    InternetSetOption(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
+    InternetSetOption(NULL, INTERNET_OPTION_REFRESH, NULL, 0);
 }
 #endif
 
@@ -68,6 +119,10 @@ int main() {
         return 1;
     }
     printf("WSAStartup initialized successfully\n");
+
+    // Set system proxy
+    set_system_proxy("127.0.0.1:1080");
+    printf("System proxy set to 127.0.0.1:1080\n");
     #endif
 
     // Create socket
@@ -123,6 +178,10 @@ int main() {
     #ifdef _WIN32
     closesocket(sockfd);
     WSACleanup();
+
+    // Unset system proxy
+    unset_system_proxy();
+    printf("System proxy unset\n");
     #else
     close(sockfd);
     #endif
@@ -130,6 +189,6 @@ int main() {
     printf("Socket closed successfully\n");
 
     printf("Press Enter to exit...");
-    getchar();  // Ожидание нажатия клавиши Enter перед выходом
+    getchar();  // Wait for Enter key press before exiting
     return 0;
 }
