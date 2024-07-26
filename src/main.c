@@ -97,6 +97,14 @@ void unset_system_proxy() {
 }
 #endif
 
+void print_hex(const char *label, const unsigned char *data, size_t length) {
+    printf("%s: ", label);
+    for (size_t i = 0; i < length; i++) {
+        printf("%02x", data[i]);
+    }
+    printf("\n");
+}
+
 int main() {
     if (sodium_init() < 0) {
         fprintf(stderr, "libsodium initialization failed\n");
@@ -115,6 +123,7 @@ int main() {
     }
 
     printf("Encryption key setup successfully\n");
+    print_hex("Encryption key", key, sizeof key);
 
     #ifdef _WIN32
     WSADATA wsaData;
@@ -173,6 +182,8 @@ int main() {
     }
 
     printf("Message encrypted successfully\n");
+    print_hex("Nonce", nonce, sizeof nonce);
+    print_hex("Ciphertext", ciphertext, ciphertext_len);
 
     if (send(sockfd, nonce, sizeof nonce, 0) == -1) {
         perror("send nonce");
