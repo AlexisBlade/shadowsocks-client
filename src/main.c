@@ -178,12 +178,13 @@ int main() {
         perror("send nonce");
         return 1;
     }
+    printf("Nonce sent successfully\n");
+    
     if (send(sockfd, ciphertext, ciphertext_len, 0) == -1) {
         perror("send ciphertext");
         return 1;
     }
-
-    printf("Message sent successfully\n");
+    printf("Ciphertext sent successfully\n");
 
     #ifdef _WIN32
     closesocket(sockfd);
