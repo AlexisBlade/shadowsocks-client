@@ -192,6 +192,8 @@ int main() {
     if (len > 0) {
         buffer[len] = '\0';
         printf("Received response from server: %s\n", buffer);
+    } else if (len == 0) {
+        printf("Connection closed by peer\n");
     } else {
         perror("recv");
     }
