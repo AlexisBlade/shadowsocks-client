@@ -1,0 +1,3 @@
+/home/alexis/shadowsocks-client/build/CMakeFiles/shadowsocks_client_windows.dir
+/home/alexis/shadowsocks-client/build/CMakeFiles/edit_cache.dir
+/home/alexis/shadowsocks-client/build/CMakeFiles/rebuild_cache.dir
