@@ -84,20 +84,33 @@ This project is a cross-platform VPN client for Shadowsocks. Initially, it is an
     cd build
     ```
 
-4. Build the project:
+4. Create a configuration file `src/config.h`:
+    ```c
+    #ifndef CONFIG_H
+    #define CONFIG_H
+
+    #define SERVER_IP "your-ip"
+    #define SERVER_PORT 8388
+    #define PASSWORD "your-password"
+    #define METHOD "aes-256-gcm"
+
+    #endif
+    ```
+
+5. Build the project:
     ```bash
     cmake ..
     make
     ```
 
-5. Run the client:
+6. Run the client:
     ```bash
     ./bin/shadowsocks_client
     ```
 
 #### Windows (Cross-compiling on Linux)
 
-1. Follow steps 1-3 from the Linux instructions.
+1. Follow steps 1-4 from the Linux instructions.
 
 2. Cross-compile the project:
     ```bash
