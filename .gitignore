@@ -1,0 +1,100 @@
+# General
+*.log
+*.tmp
+*.temp
+
+# Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.def
+*.dll
+*.dylib
+*.so
+*.so.*
+*.d
+*.dSYM/
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.stackdump
+*.stacktrace
+
+# Directories
+build/
+bin/
+debug/
+Release/
+Debug/
+x64/
+x86/
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+
+# IDE specific files
+# CLion
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+# Visual Studio
+.vscode/
+*.code-workspace
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.pdb
+*.dir/
+*.sdf
+*.opensdf
+*.suo
+*.sln
+*.vscode
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
