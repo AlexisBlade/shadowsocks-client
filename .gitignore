@@ -98,3 +98,6 @@ cmake-build-release/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Secured Data
+src/config.h

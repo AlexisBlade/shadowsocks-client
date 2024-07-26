@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sodium.h>
+#include "config.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -18,11 +19,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #endif
-
-#define SERVER_IP "38.180.134.199"
-#define SERVER_PORT 8388
-#define PASSWORD "Indigo2017"
-#define METHOD "aes-256-gcm"
 
 void print_hex(const char *label, const unsigned char *data, size_t length);
 void set_system_proxy(const char *proxy_address);
