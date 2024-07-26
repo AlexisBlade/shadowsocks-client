@@ -66,6 +66,8 @@ void set_system_proxy(const char *proxy_address) {
 
     if (!InternetSetOption(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, list_size)) {
         printf("Failed to set proxy settings\n");
+    } else {
+        printf("Proxy settings set successfully\n");
     }
     InternetSetOption(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
     InternetSetOption(NULL, INTERNET_OPTION_REFRESH, NULL, 0);
@@ -87,6 +89,8 @@ void unset_system_proxy() {
 
     if (!InternetSetOption(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &option_list, list_size)) {
         printf("Failed to unset proxy settings\n");
+    } else {
+        printf("Proxy settings unset successfully\n");
     }
     InternetSetOption(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
     InternetSetOption(NULL, INTERNET_OPTION_REFRESH, NULL, 0);
@@ -170,8 +174,14 @@ int main() {
 
     printf("Message encrypted successfully\n");
 
-    send(sockfd, nonce, sizeof nonce, 0);
-    send(sockfd, ciphertext, ciphertext_len, 0);
+    if (send(sockfd, nonce, sizeof nonce, 0) == -1) {
+        perror("send nonce");
+        return 1;
+    }
+    if (send(sockfd, ciphertext, ciphertext_len, 0) == -1) {
+        perror("send ciphertext");
+        return 1;
+    }
 
     printf("Message sent successfully\n");
 
