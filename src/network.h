@@ -20,7 +20,6 @@
 #include <sys/socket.h>
 #endif
 
-void print_hex(const char *label, const unsigned char *data, size_t length);
 void set_system_proxy(const char *proxy_address);
 void unset_system_proxy();
 int initialize_sodium();

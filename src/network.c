@@ -1,44 +1,17 @@
 #include "network.h"
 
-// Windows-specific implementation of inet_pton to convert IP addresses from text to binary form
 #ifdef _WIN32
-int inet_pton(int af, const char *src, void *dst) {
-    struct sockaddr_storage ss;
-    int size = sizeof(ss);
-    char src_copy[INET6_ADDRSTRLEN+1];
-
-    ZeroMemory(&ss, sizeof(ss));
-    strncpy(src_copy, src, INET6_ADDRSTRLEN+1);
-    src_copy[INET6_ADDRSTRLEN] = 0;
-
-    if (WSAStringToAddressA(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
-        switch (af) {
-            case AF_INET:
-                *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
-                return 1;
-            case AF_INET6:
-                *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
-                return 1;
-        }
-    }
-    return 0;
-}
-
-// Sets system proxy settings on Windows
 void set_system_proxy(const char *proxy_address) {
     INTERNET_PER_CONN_OPTION_LIST option_list;
     INTERNET_PER_CONN_OPTION option[3];
     unsigned long list_size = sizeof(option_list);
 
-    // Set flags to use the proxy
     option[0].dwOption = INTERNET_PER_CONN_FLAGS;
     option[0].Value.dwValue = PROXY_TYPE_PROXY;
 
-    // Set the proxy address
     option[1].dwOption = INTERNET_PER_CONN_PROXY_SERVER;
     option[1].Value.pszValue = (char *)proxy_address;
 
-    // Set exceptions for local addresses
     option[2].dwOption = INTERNET_PER_CONN_PROXY_BYPASS;
     option[2].Value.pszValue = "local;localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
 
@@ -57,7 +30,6 @@ void set_system_proxy(const char *proxy_address) {
     InternetSetOption(NULL, INTERNET_OPTION_REFRESH, NULL, 0);
 }
 
-// Unsets system proxy settings on Windows
 void unset_system_proxy() {
     INTERNET_PER_CONN_OPTION_LIST option_list;
     INTERNET_PER_CONN_OPTION option;
@@ -82,16 +54,6 @@ void unset_system_proxy() {
 }
 #endif
 
-// Prints data in hexadecimal format
-void print_hex(const char *label, const unsigned char *data, size_t length) {
-    printf("%s: ", label);
-    for (size_t i = 0; i < length; i++) {
-        printf("%02x", data[i]);
-    }
-    printf("\n");
-}
-
-// Initializes the libsodium library
 int initialize_sodium() {
     if (sodium_init() < 0) {
         fprintf(stderr, "libsodium initialization failed\n");
@@ -101,7 +63,6 @@ int initialize_sodium() {
     return 0;
 }
 
-// Sets up the encryption key using the password
 int setup_encryption_key(unsigned char *key) {
     if (crypto_pwhash(key, crypto_aead_aes256gcm_KEYBYTES, PASSWORD, strlen(PASSWORD),
                       (const unsigned char *) "shadowsocks", crypto_pwhash_OPSLIMIT_INTERACTIVE,
@@ -110,13 +71,11 @@ int setup_encryption_key(unsigned char *key) {
         return -1;
     }
     printf("Encryption key setup successfully\n");
-    print_hex("Encryption key", key, crypto_aead_aes256gcm_KEYBYTES);
     return 0;
 }
 
-// Creates a socket for network communication
 int create_socket() {
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("socket");
         return -1;
@@ -125,7 +84,6 @@ int create_socket() {
     return sockfd;
 }
 
-// Connects to the server using the specified IP address and port
 int connect_to_server(int sockfd, const char *server_ip, int server_port) {
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));

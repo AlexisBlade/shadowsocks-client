@@ -1,6 +1,17 @@
 #include "network.h"
 
+// Function to print data in hexadecimal format
+void print_hex(const char *label, const unsigned char *data, size_t length) {
+    printf("%s", label);
+    for (size_t i = 0; i < length; i++) {
+        printf("%02x", data[i]);
+    }
+    printf("\n");
+}
+
 int main() {
+    printf("Starting Shadowsocks client...\n");
+
     // Initialize the Sodium library
     if (initialize_sodium() < 0) {
         return 1;
@@ -11,6 +22,8 @@ int main() {
     if (setup_encryption_key(key) < 0) {
         return 1;
     }
+    printf("Encryption key setup successfully\n");
+    print_hex("Encryption key: ", key, crypto_aead_aes256gcm_KEYBYTES);
 
     // Initialize Windows Sockets (only for Windows)
     #ifdef _WIN32
@@ -31,57 +44,54 @@ int main() {
     if (sockfd < 0) {
         return 1;
     }
-    
+    printf("Socket created successfully\n");
+
     // Connect to the server
     if (connect_to_server(sockfd, SERVER_IP, SERVER_PORT) < 0) {
         return 1;
     }
+    printf("Connected to the server successfully\n");
 
-    char *message = "Hello, Shadowsocks!";
-    unsigned char ciphertext[1024]; // Array for encrypted text
-    unsigned long long ciphertext_len; // Length of encrypted text
-    unsigned char nonce[crypto_aead_aes256gcm_NPUBBYTES]; // Array for nonce
+    // Encrypt and send a test message
+    unsigned char nonce[crypto_aead_aes256gcm_NPUBBYTES];
+    randombytes_buf(nonce, sizeof nonce);
+    printf("Nonce: ");
+    print_hex("Nonce: ", nonce, sizeof nonce);
 
-    randombytes_buf(nonce, sizeof nonce); // Generate random bytes for nonce (for unique encryption)
+    const char *message = "Hello Shadowsocks";
+    unsigned char ciphertext[128];
+    unsigned long long ciphertext_len;
 
-    // Encrypt the message
-    if (crypto_aead_aes256gcm_encrypt(ciphertext, &ciphertext_len,
-                                      (const unsigned char *)message, strlen(message),
-                                      NULL, 0, NULL, nonce, key) != 0) {
-        fprintf(stderr, "encryption failed\n");
+    if (crypto_aead_aes256gcm_encrypt(ciphertext, &ciphertext_len, (const unsigned char *)message, strlen(message), NULL, 0, NULL, nonce, key) != 0) {
+        fprintf(stderr, "Encryption failed\n");
         return 1;
     }
+    printf("Ciphertext: ");
+    print_hex("Ciphertext: ", ciphertext, ciphertext_len);
 
-    printf("Message encrypted successfully\n");
-    print_hex("Nonce", nonce, sizeof nonce);
-    print_hex("Ciphertext", ciphertext, ciphertext_len);
-
-    // Send the nonce through the socket
-    if (send(sockfd, nonce, sizeof nonce, 0) == -1) {
+    // Send nonce
+    if (send(sockfd, nonce, sizeof nonce, 0) < 0) {
         perror("send nonce");
         return 1;
     }
     printf("Nonce sent successfully\n");
 
-    // Send the encrypted text through the socket
-    if (send(sockfd, ciphertext, ciphertext_len, 0) == -1) {
+    // Send ciphertext
+    if (send(sockfd, ciphertext, ciphertext_len, 0) < 0) {
         perror("send ciphertext");
         return 1;
     }
     printf("Ciphertext sent successfully\n");
 
-    // Wait for a response from the server
-    printf("Waiting for response from server...\n");
-    unsigned char buffer[1024];
-    int len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-    if (len > 0) {
-        buffer[len] = '\0';
-        printf("Received response from server: %s\n", buffer);
-    } else if (len == 0) {
-        printf("Connection closed by peer\n");
-    } else {
+    // Wait for response (for example purposes, not needed for Shadowsocks)
+    char buffer[128];
+    int bytes_received = recv(sockfd, buffer, sizeof buffer, 0);
+    if (bytes_received < 0) {
         perror("recv");
+        return 1;
     }
+    printf("Received response: ");
+    print_hex("Received response: ", (unsigned char *)buffer, bytes_received);
 
     #ifdef _WIN32
     closesocket(sockfd);
