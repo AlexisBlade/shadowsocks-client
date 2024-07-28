@@ -30,14 +30,17 @@ void set_system_proxy(const char *proxy_address) {
     INTERNET_PER_CONN_OPTION option[3];
     unsigned long list_size = sizeof(option_list);
 
+    // Set flags to use the proxy
     option[0].dwOption = INTERNET_PER_CONN_FLAGS;
-    option[0].Value.dwValue = PROXY_TYPE_DIRECT | PROXY_TYPE_PROXY;
+    option[0].Value.dwValue = PROXY_TYPE_PROXY;
 
+    // Set the proxy address
     option[1].dwOption = INTERNET_PER_CONN_PROXY_SERVER;
     option[1].Value.pszValue = (char *)proxy_address;
 
+    // Set exceptions for local addresses
     option[2].dwOption = INTERNET_PER_CONN_PROXY_BYPASS;
-    option[2].Value.pszValue = "local";
+    option[2].Value.pszValue = "local;localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*";
 
     option_list.dwSize = sizeof(option_list);
     option_list.pszConnection = NULL;
