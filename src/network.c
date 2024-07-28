@@ -1,5 +1,6 @@
 #include "network.h"
 
+// Windows-specific implementation of inet_pton to convert IP addresses from text to binary form
 #ifdef _WIN32
 int inet_pton(int af, const char *src, void *dst) {
     struct sockaddr_storage ss;
@@ -23,6 +24,7 @@ int inet_pton(int af, const char *src, void *dst) {
     return 0;
 }
 
+// Sets system proxy settings on Windows
 void set_system_proxy(const char *proxy_address) {
     INTERNET_PER_CONN_OPTION_LIST option_list;
     INTERNET_PER_CONN_OPTION option[3];
@@ -52,6 +54,7 @@ void set_system_proxy(const char *proxy_address) {
     InternetSetOption(NULL, INTERNET_OPTION_REFRESH, NULL, 0);
 }
 
+// Unsets system proxy settings on Windows
 void unset_system_proxy() {
     INTERNET_PER_CONN_OPTION_LIST option_list;
     INTERNET_PER_CONN_OPTION option;
@@ -76,6 +79,7 @@ void unset_system_proxy() {
 }
 #endif
 
+// Prints data in hexadecimal format
 void print_hex(const char *label, const unsigned char *data, size_t length) {
     printf("%s: ", label);
     for (size_t i = 0; i < length; i++) {
@@ -84,6 +88,7 @@ void print_hex(const char *label, const unsigned char *data, size_t length) {
     printf("\n");
 }
 
+// Initializes the libsodium library
 int initialize_sodium() {
     if (sodium_init() < 0) {
         fprintf(stderr, "libsodium initialization failed\n");
@@ -93,6 +98,7 @@ int initialize_sodium() {
     return 0;
 }
 
+// Sets up the encryption key using the password
 int setup_encryption_key(unsigned char *key) {
     if (crypto_pwhash(key, crypto_aead_aes256gcm_KEYBYTES, PASSWORD, strlen(PASSWORD),
                       (const unsigned char *) "shadowsocks", crypto_pwhash_OPSLIMIT_INTERACTIVE,
@@ -105,6 +111,7 @@ int setup_encryption_key(unsigned char *key) {
     return 0;
 }
 
+// Creates a socket for network communication
 int create_socket() {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
@@ -115,6 +122,7 @@ int create_socket() {
     return sockfd;
 }
 
+// Connects to the server using the specified IP address and port
 int connect_to_server(int sockfd, const char *server_ip, int server_port) {
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
